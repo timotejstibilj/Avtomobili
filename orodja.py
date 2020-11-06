@@ -5,6 +5,10 @@ import os
 import requests
 import sys
 
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+}
+
 
 def pripravi_imenik(ime_datoteke):
     """Če še ne obstaja, pripravi prazen imenik za dano datoteko."""
@@ -22,7 +26,7 @@ def shrani_spletno_stran(url, ime_datoteke, vsili_prenos=False):
             print("shranjeno že od prej!")
             return
 
-        r = requests.Session().get(url, auth=("user", "pass"))
+        r = requests.get(url, headers=HEADERS)
     except requests.exceptions.ConnectionError:
         print("stran ne obstaja!")
     else:
