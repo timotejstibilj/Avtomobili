@@ -5,24 +5,88 @@ import orodja
 STEVILO_STRANI = 21
 INDEKS_OBLIKE = 11
 
+vzorec_bloka = re.compile(
+    r"<div class=\"col-12 pb-3 position-relative w-100\" style=\"background-color: #E9E9E9\">(.*\n\s*)*?"
+    r"<div class=\"GO-Results(-Top)?-Price-TXT-Regular\">\d.*?</div>"
+)
 
-pattern = re.compile(
-    r"<span>(?P<ime_avtomobila>\w{3}.*?)</span>\n\s*</div>(.*\n\s*)*?<td class=\"w-75 pl-3\">(?P<leto_prve_registracije>.*?)</td>(.*\n\s*)*?<td class=\"pl-3\">(?P<prevozeni_kilometri>\d+\skm)</td>(.*\n\s*)*?<td class=\"pl-3\">(?P<vrsta_motorja>\D*)</td>(.*\n\s*)*?<td class=\"pl-3 text-truncate\">(?P<vrsta_menjalnika>.*menjalnik)</td>(.*\n\s*)*?<td class=\"pl-3 text-truncate\">\n\s*(?P<karakteristike_motorja>\d*.*\D)\n\s*</td>(.*\n\s*)*?<div class=\"GO-Results(-Top)?-Price-TXT-Regular\">\d.*?</div>"
+vzorec_oglasa = re.compile(
+    r"<span>(?P<ime_avtomobila>\w{3}.*?)</span>\n\s*</div>(.*\n\s*)*?"
+    r"<td class=\"w-75 pl-3\">(?P<leto_prve_registracije>.*?)</td>(.*\n\s*)*?"
+    r"<td class=\"pl-3\">(?P<prevozeni_kilometri>\d+\skm)</td>(.*\n\s*)*?"
+    r"<td class=\"pl-3\">(?P<vrsta_motorja>\D*)</td>(.*\n\s*)*?"
+    r"<td class=\"pl-3 text-truncate\">(?P<vrsta_menjalnika>.*menjalnik)</td>(.*\n\s*)*?"
+    r"<td class=\"pl-3 text-truncate\">\n\s*(?P<karakteristike_motorja>\d*.*\D)\n\s*</td>(.*\n\s*)*?"
+    r"<div class=\"GO-Results(-Top)?-Price-TXT-Regular\">(?P<cena>\d.*?)</div>"
 )
 
 
-for stevilo in range(INDEKS_OBLIKE, INDEKS_OBLIKE + 6):
-    for stran in range(1, STEVILO_STRANI + 1):
-        url = f"https://www.avto.net/Ads/results.asp?znamka=&model=&modelID=&tip=&znamka2=&model2=&tip2=&znamka3=&model3=&tip3=&cenaMin=0&cenaMax=999999&letnikMin=0&letnikMax=2090&bencin=0&starost2=999&oblika={stevilo}&ccmMin=0&ccmMax=99999&mocMin=&mocMax=&kmMin=0&kmMax=9999999&kwMin=0&kwMax=999&motortakt=0&motorvalji=0&lokacija=0&sirina=0&dolzina=&dolzinaMIN=0&dolzinaMAX=100&nosilnostMIN=0&nosilnostMAX=999999&lezisc=&presek=0&premer=0&col=0&vijakov=0&EToznaka=0&vozilo=&airbag=&barva=&barvaint=&EQ1=1000000000&EQ2=1000000000&EQ3=1000000000&EQ4=100000000&EQ5=1000000000&EQ6=1000000000&EQ7=1000100020&EQ8=1010000001&EQ9=1000000000&KAT=1010000000&PIA=&PIAzero=&PSLO=&akcija=0&paketgarancije=&broker=0&prikazkategorije=0&kategorija=0&zaloga=10&arhiv=0&presort=3&tipsort=DESC&stran={stran}"
-        datoteka = f"rabljeni-avtomobili-oblika-{stevilo}-stran-{stran}.html"
-        orodja.shrani_spletno_stran(url, datoteka)
-
-vsebina = orodja.vsebina_datoteke("rabljeni-avtomobili-oblika-16-stran-10.html")
-
-count = 0
-for zadetek in re.finditer(pattern, vsebina):
-    print(zadetek.groupdict())
-    count += 1
+def doloci_vrsto_menjalnika(menjalnik):
+    if menjalnik[0] == "a":
+        return "avtomatski menjalnik"
+    else:
+        return "ročni menjalnik"
 
 
-print(count)
+def izloci_velikost_motorja(karakteristike_motorja):
+    if "ccm" in karakteristike_motorja:
+        return karakteristike_motorja[: karakteristike_motorja.index(",")]
+
+
+def izloci_moc_motorja(karakteristike_motorja):
+    if "kW" in karakteristike_motorja or "KM" in karakteristike_motorja:
+        moc = karakteristike_motorja[karakteristike_motorja.index(",") :].lstrip()
+        return moc
+
+
+def popravi_zapis_cene(cena):
+    return int([znak for znak in cena if znak.isdigit()])
+
+
+def izloci_podatke_oglasa(blok):
+    oglas = vzorec_oglasa.search(blok).groupdict()
+    # ime avtomobila, vrsto motorja pustimo kot je
+    oglas["znamka"] = oglas["ime_avtomobila"].split()[0]
+    oglas["leto_prve_registracije"] = int(oglas["leto_prve_registracije"])
+    oglas["prevozeni_kilometri"] = int(oglas["prevozeni_kilometri"])
+    oglas["vrsta_menjalnika"] = doloci_vrsto_menjalnika(oglas["vrsta_menjalnika"])
+
+    # locimo moc in velikost motorja
+    moc = izloci_moc_motorja(oglas["karakteristike_motorja"])
+    oglas["moc_motorja"] = moc
+    velikost = izloci_velikost_motorja(oglas["karakteristike_motorja"])
+    oglas["velikost_motorja"] = velikost
+    del oglas["karakteristike_motorja"]
+
+    oglas["cena"] = popravi_zapis_cene(oglas["cena"])
+
+
+def oglasi_na_strani(oblika, stran):
+    url = (
+        "https://www.avto.net/Ads/results.asp?znamka=&model=&modelID=&tip=&znamka2=&model2=&tip2=&znamka3=&model3=&tip3=&"
+        f"cenaMin=0&cenaMax=999999&letnikMin=0&letnikMax=2090&bencin=0&starost2=999&oblika={oblika}&ccmMin=0&ccmMax=99999&"
+        "mocMin=&mocMax=&kmMin=0&kmMax=9999999&kwMin=0&kwMax=999&motortakt=0&motorvalji=0&lokacija=0&sirina=0&dolzina=&"
+        "dolzinaMIN=0&dolzinaMAX=100&nosilnostMIN=0&nosilnostMAX=999999&lezisc=&presek=0&premer=0&col=0&vijakov=0&EToznaka=0&"
+        "vozilo=&airbag=&barva=&barvaint=&EQ1=1000000000&EQ2=1000000000&EQ3=1000000000&EQ4=100000000&EQ5=1000000000&EQ6="
+        "1000000000&EQ7=1000100020&EQ8=1010000001&EQ9=1000000000&KAT=1010000000&PIA=&PIAzero=&PSLO=&akcija=0&paketgarancije=&"
+        f"broker=0&prikazkategorije=0&kategorija=0&zaloga=10&arhiv=0&presort=3&tipsort=DESC&stran={stran}"
+    )
+    ime_datoteke = f"rabljeni-avtomobili-oblika-{oblika}-stran-{stran}.html"
+    orodja.shrani_spletno_stran(url, ime_datoteke)
+    vsebina = orodja.vsebina_datoteke(ime_datoteke)
+    for blok in vzorec_bloka.finditer(vsebina):
+        yield izloci_podatke_oglasa(blok.group(0))
+
+
+oglasi = []
+for stran in range(1, STEVILO_STRANI + 1):
+    for oblika in range(INDEKS_OBLIKE, INDEKS_OBLIKE + 6):
+        for oglas in oglasi_na_strani(oblika, stran):
+            oglasi.append(oglas)
+oglasi.sort(key=lambda oglas: oglas["ime_avtomobila"])
+
+# orodja.zapisi_json(oglasi, 'obdelani-podatki/oglasi.json')
+# orodja.zapisi_csv(
+#    oglasi,
+#    ['id', 'naslov', 'dolzina', 'leto', 'ocena', 'metascore', 'glasovi', 'zasluzek', 'oznaka', 'opis'], 'obdelani-podatki/oglasi.csv'
+# )
