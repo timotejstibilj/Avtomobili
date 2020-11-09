@@ -2,11 +2,11 @@ import re
 import requests
 import orodja
 
-STEVILO_STRANI = 21
+STEVILO_STRANI = 1
 INDEKS_OBLIKE = 11
 
 vzorec_bloka = re.compile(
-    r"<div class=\"col-12 pb-3 position-relative w-100\" style=\"background-color: #E9E9E9\">(.*\n\s*)*?"
+    r"<span>\w{3}.*?</span>\n\s*</div>(.*\n\s*)*?"
     r"<div class=\"GO-Results(-Top)?-Price-TXT-Regular\">\d.*?</div>"
 )
 
@@ -35,20 +35,20 @@ def izloci_velikost_motorja(karakteristike_motorja):
 
 def izloci_moc_motorja(karakteristike_motorja):
     if "kW" in karakteristike_motorja or "KM" in karakteristike_motorja:
-        moc = karakteristike_motorja[karakteristike_motorja.index(",") :].lstrip()
+        moc = karakteristike_motorja[karakteristike_motorja.index(",") + 1 :].lstrip()
         return moc
 
 
 def popravi_zapis_cene(cena):
-    return int([znak for znak in cena if znak.isdigit()])
+    stevke = [znak for znak in cena if znak.isdigit()]
+    string = "".join(stevke)
+    return int(string)
 
 
 def izloci_podatke_oglasa(blok):
     oglas = vzorec_oglasa.search(blok).groupdict()
     # ime avtomobila, vrsto motorja pustimo kot je
     oglas["znamka"] = oglas["ime_avtomobila"].split()[0]
-    oglas["leto_prve_registracije"] = int(oglas["leto_prve_registracije"])
-    oglas["prevozeni_kilometri"] = int(oglas["prevozeni_kilometri"])
     oglas["vrsta_menjalnika"] = doloci_vrsto_menjalnika(oglas["vrsta_menjalnika"])
 
     # locimo moc in velikost motorja
@@ -59,6 +59,8 @@ def izloci_podatke_oglasa(blok):
     del oglas["karakteristike_motorja"]
 
     oglas["cena"] = popravi_zapis_cene(oglas["cena"])
+
+    return oglas
 
 
 def oglasi_na_strani(oblika, stran):
@@ -78,15 +80,30 @@ def oglasi_na_strani(oblika, stran):
         yield izloci_podatke_oglasa(blok.group(0))
 
 
-oglasi = []
-for stran in range(1, STEVILO_STRANI + 1):
-    for oblika in range(INDEKS_OBLIKE, INDEKS_OBLIKE + 6):
-        for oglas in oglasi_na_strani(oblika, stran):
-            oglasi.append(oglas)
-oglasi.sort(key=lambda oglas: oglas["ime_avtomobila"])
+def zapisi_oglase():
+    oglasi = []
+    for stran in range(1, STEVILO_STRANI + 1):
+        for oblika in range(INDEKS_OBLIKE, INDEKS_OBLIKE + 2):
+            for oglas in oglasi_na_strani(oblika, stran):
+                oglasi.append(oglas)
+    oglasi.sort(key=lambda oglas: oglas["ime_avtomobila"])
+    return oglasi
 
-# orodja.zapisi_json(oglasi, 'obdelani-podatki/oglasi.json')
+
+oglasi = zapisi_oglase()
+# orodja.zapisi_json(oglasi, "obdelani-podatki/oglasi.json")
 # orodja.zapisi_csv(
 #    oglasi,
-#    ['id', 'naslov', 'dolzina', 'leto', 'ocena', 'metascore', 'glasovi', 'zasluzek', 'oznaka', 'opis'], 'obdelani-podatki/oglasi.csv'
+#    [
+#        "znamka"
+#        "ime_avtomobila"
+#        "leto_prve_registracije"
+#        "prevozeni_kilometri"
+#        "vrsta_motorja"
+#        "vrsta_menjalnika"
+#        "velikost_motorja"
+#        "moc_motorja"
+#        "cena"
+#    ],
+#    "obdelani-podatki/oglasi.csv",
 # )
