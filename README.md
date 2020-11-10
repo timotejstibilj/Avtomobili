@@ -12,6 +12,8 @@ Za vsak avtomobil bom zajel:
 - tip menjalnika
 - velikost in moč motorja
 
+Zajeti podatki so shranjeni csv in json zapisu v mapi "obdelani_podatki".
+
 
 Hipoteze:
 - Ali ima avto z dizlovim motorjem večjo moč kakor avto z bencinskim motorjem, upoštevajoč isto obdobje izdelave in isti cenovni rang?
