@@ -16,7 +16,7 @@ Zajeti podatki so shranjeni csv in json zapisu v mapi "obdelani_podatki".
 
 
 Hipoteze:
-- Ali ima avto z dizlovim motorjem večjo moč kakor avto z bencinskim motorjem, upoštevajoč isto obdobje izdelave in isti cenovni rang?
-- Ali ima študent s privarčevanimi 300€ na izbiro vsaj 100 zmerno obrabljenih avtomobilov (< 150 000 prevoženih km in mlajših kot 10 let)?
+- Ali je cenovno ugodnejši nakup avtomobila z dizlovim motorjem ali "bencinca", upoštevajoč isto obdobje izdelave in isto moč/velikost motorja ter isti rang prevoženih kilometrov?
+- Kakšno izbiro avtomobilov ima študent s privarčevanimi 1000€ ?
 - Katera znamka avtomobilov starih največ 5 let ima najboljše razmerje med ceno in prevoženimi kilometri?
 - Ali lahko na podlagi preostalih podatkov v oglasu napovemo ceno avtomobila?
