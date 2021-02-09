@@ -13,6 +13,7 @@ Za vsak avtomobil bom zajel:
 - velikost in moč motorja
 
 Zajeti podatki so shranjeni csv in json zapisu v mapi "obdelani_podatki".
+Opomba: cena je podana v €, velikost motorja v ccm^3 in moč motorja v kW.
 
 
 Hipoteze:
