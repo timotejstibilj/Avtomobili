@@ -26,17 +26,25 @@ def izloci_velikost_motorja(karakteristike_motorja):
     if "ccm" in karakteristike_motorja:
         sez = karakteristike_motorja.split()[:2]
         motor = sez[0] + " " + sez[1]
-        return motor[:-1]
+        zapis = motor[:-1]
+        return [i for i in zapis if i.isdigit()]
     else:
         return "velikost motorja ni znana"
 
 
 def izloci_moc_motorja(karakteristike_motorja):
-    if "kW" in karakteristike_motorja or "KM" in karakteristike_motorja:
+    if "kW" in karakteristike_motorja:
         if "," in karakteristike_motorja:
-            moc = karakteristike_motorja[
+            skupna_moc = karakteristike_motorja[
                 karakteristike_motorja.index(",") + 1 :
             ].lstrip()
+            moc = ""
+            for i in range(len(skupna_moc)):
+                if skupna_moc[i].isdigit():
+                    moc += skupna_moc[i]
+                else:
+                    break
+            moc = int(moc)
         else:
             moc = karakteristike_motorja
         return moc
@@ -44,8 +52,8 @@ def izloci_moc_motorja(karakteristike_motorja):
         return "moc motorja ni znana"
 
 
-def popravi_zapis_cene(cena):
-    stevke = [znak for znak in cena if znak.isdigit()]
+def spremeni_v_int(arg):
+    stevke = [znak for znak in arg if znak.isdigit()]
     string = "".join(stevke)
     return int(string)
 
@@ -62,8 +70,9 @@ def izloci_podatke_oglasa(blok):
     velikost = izloci_velikost_motorja(oglas["karakteristike_motorja"])
     oglas["velikost_motorja"] = velikost
     del oglas["karakteristike_motorja"]
+    oglas["prevozeni_kilometri"] = spremeni_v_int(oglas["prevozeni_kilometri"])
 
-    oglas["cena"] = popravi_zapis_cene(oglas["cena"])
+    oglas["cena"] = spremeni_v_int(oglas["cena"])
 
     return oglas
 
