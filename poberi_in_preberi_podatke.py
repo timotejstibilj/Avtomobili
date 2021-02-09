@@ -27,7 +27,7 @@ def izloci_velikost_motorja(karakteristike_motorja):
         sez = karakteristike_motorja.split()[:2]
         motor = sez[0] + " " + sez[1]
         zapis = motor[:-1]
-        return [i for i in zapis if i.isdigit()]
+        return spremeni_v_int(zapis)
     else:
         return "velikost motorja ni znana"
 
