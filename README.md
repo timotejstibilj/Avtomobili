@@ -4,20 +4,20 @@ Analiziral bom oglase avtomobilov na spletni strani [avto.net](https://www.avto.
 
 
 Za vsak avtomobil bom zajel:
-- polno ime
-- ceno
-- leto (prve) registracije
-- število prevoženih kilometrov
-- vrsto goriva
-- tip menjalnika
-- velikost in moč motorja
+- *polno ime*
+- *ceno*
+- *leto (prve) registracije*
+- *število prevoženih kilometrov*
+- *vrsto goriva*
+- *tip menjalnika*
+- *velikost in moč motorja*
 
 Zajeti podatki so shranjeni csv in json zapisu v mapi "obdelani_podatki".
 
-Opomba: cena je podana v €, velikost motorja v ccm in moč motorja v kW.
+*Opomba*: cena je podana v €, velikost motorja v ccm in moč motorja v kW.
 
 
-Hipoteze:
+**Hipoteze:**
 - Ali je cenovno ugodnejši nakup avtomobila z dizlovim motorjem ali "bencinca", upoštevajoč isto obdobje izdelave in isto moč/velikost motorja ter isti rang prevoženih kilometrov?
 - Kakšno izbiro avtomobilov ima študent s privarčevanimi 1000€ ?
 - Katera znamka avtomobilov starih največ 5 let ima najboljše razmerje med ceno in prevoženimi kilometri?
